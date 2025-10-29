@@ -1,0 +1,26 @@
+name: Build and Push to Docker Hub
+
+on:
+  push:
+    branches: [ "main" ]  # change to "master" if your repo uses that
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      - name: Build Docker Image
+        run: |
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/is147:${{ github.run_number }} .
+          docker tag ${{ secrets.DOCKER_USERNAME }}/is147:${{ github.run_number }} ${{ secrets.DOCKER_USERNAME }}/is147:latest
+
+      - name: Push Docker Image (versioned + latest)
+        run: |
+          docker push ${{ secrets.DOCKER_USERNAME }}/is147:${{ github.run_number }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/is147:latest
